@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NovaPad Nexus</title>
+  <meta name="theme-color" content="#0f0f1a">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #e0e0e0; padding: 8px; }
+    .nexus-fab { position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%; z-index: 999; cursor: pointer; display: flex; align-items: center; justify-content: center; background: rgba(15, 15, 30, 0.9); backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.6); transition: transform 0.2s ease; }
+    .nexus-fab::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: conic-gradient(#ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000); animation: rotateRGB 2.5s linear infinite; z-index: -1; filter: blur(3px); opacity: 0.9; }
+    @keyframes rotateRGB { 100% { transform: rotate(360deg); } }
+    .nexus-fab:active { transform: scale(0.9); }
+    .nexus-fab-inner { width: 52px; height: 52px; border-radius: 50%; background: rgba(20, 20, 45, 0.95); display: flex; align-items: center; justify-content: center; z-index: 1; }
+    .nexus-fab-inner svg { width: 26px; height: 26px; fill: #fff; filter: drop-shadow(0 0 6px #6c63ff); }
+    .container { background: rgba(25,25,45,0.8); backdrop-filter: blur(15px); padding: 1.2rem 1rem; border-radius: 22px; width: 100%; max-width: 380px; box-shadow: 0 20px 35px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 1rem; }
+    h2 { text-align: center; font-weight: 600; letter-spacing: 2px; color: #fff; font-size: 1.5rem; text-shadow: 0 0 10px #6c63ff, 0 0 20px #6c63ff; }
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .quick-btn, .ctrl-btn, .site-btn, .power-btn, .fun-btn, .film-btn, .timer-btn, .clip-btn, .file-nav-btn { padding: 10px 4px; border: none; border-radius: 14px; background: rgba(35,35,60,0.6); color: #c8c8f0; cursor: pointer; transition: 0.15s; text-align: center; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .quick-btn:active, .ctrl-btn:active, .site-btn:active, .power-btn:active, .fun-btn:active, .film-btn:active, .timer-btn:active, .clip-btn:active, .file-nav-btn:active { background: #6c63ff; transform: scale(0.95); color: #fff; }
+    .film-btn { background: rgba(255,140,0,0.15); color: #ffb74d; }
+    .timer-btn { background: rgba(255,200,0,0.15); color: #ffd740; }
+    .power-btn { background: rgba(255,70,70,0.2); color: #ff8a8a; font-size:14px; font-weight:600; }
+    .fun-btn { background: rgba(0,255,100,0.2); color: #a0ffc0; font-size:14px; font-weight:600; }
+    .clip-btn { background: rgba(0,200,255,0.15); color: #80d8ff; }
+    .file-nav-btn { background: rgba(255,255,255,0.08); color: #e0e0e0; font-size: 13px; }
+    .touchpad-container { width:100%; background:rgba(20,20,40,0.6); border:1px solid rgba(255,255,255,0.1); border-radius:16px; overflow:hidden; }
+    .touchpad { width:100%; height:100px; background:rgba(30,30,55,0.5); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.3); font-size:14px; touch-action:none; user-select:none; }
+    .touchpad-buttons { display:flex; gap:6px; padding:6px; }
+    .touchpad-btn { flex:1; padding:8px; border:none; border-radius:12px; background:rgba(35,35,60,0.6); color:#c8c8f0; font-size:12px; font-weight:500; cursor:pointer; transition:0.15s; }
+    .touchpad-btn:active { background:#6c63ff; color:#fff; }
+    .search-row { display:flex; gap:6px; }
+    .search-row input { flex:1; padding:10px 14px; border:none; border-radius:16px; background:rgba(45,45,75,0.5); color:white; font-size:14px; outline:none; border:1px solid rgba(255,255,255,0.08); }
+    .search-row input:focus { border-color:#6c63ff; }
+    .search-row button { padding:10px 16px; border:none; border-radius:16px; background:#6c63ff; color:white; font-weight:600; cursor:pointer; font-size:14px; }
+    .toggle-btn { width:100%; padding:10px; border:none; border-radius:16px; background:rgba(45,45,75,0.45); color:#eee; font-size:14px; font-weight:500; cursor:pointer; animation:rgbPulse 3s ease-in-out infinite alternate; border:2px solid rgba(255,255,255,0.3); }
+    @keyframes rgbPulse { 0%{border-color:#ff4d4d;box-shadow:0 0 8px #ff4d4d} 25%{border-color:#ffcc00;box-shadow:0 0 8px #ffcc00} 50%{border-color:#4dff4d;box-shadow:0 0 8px #4dff4d} 75%{border-color:#4d4dff;box-shadow:0 0 8px #4d4dff} 100%{border-color:#ff4dff;box-shadow:0 0 8px #ff4dff} }
+    .collapsible { max-height:0; overflow:hidden; opacity:0; transition:max-height 0.5s ease, opacity 0.3s; }
+    .collapsible.open { max-height:2600px; opacity:1; margin-top:0.5rem; }
+    .tabs { display:flex; gap:3px; margin-bottom:6px; flex-wrap:wrap; }
+    .tab-btn { flex:1; min-width: 70px; padding:8px 6px; border:none; border-radius:10px; background:rgba(35,35,60,0.4); color:#999; font-size:11px; font-weight:500; cursor:pointer; transition:0.2s; white-space: nowrap; }
+    .tab-btn.active { background:#6c63ff; color:#fff; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+    .file-manager { background: rgba(0,0,0,0.3); border-radius: 16px; padding: 10px; border: 1px solid rgba(255,255,255,0.08); }
+    .file-header { display: flex; gap: 6px; margin-bottom: 8px; }
+    .file-path { flex: 1; font-size: 11px; color: #aaa; padding: 6px 8px; background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .file-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .file-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: background 0.15s; }
+    .file-item:hover { background: rgba(108,99,255,0.15); }
+    .file-icon { font-size: 20px; width: 24px; text-align: center; }
+    .file-name { flex: 1; font-size: 13px; color: #e0e0e0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .file-meta { font-size: 10px; color: #888; }
+    .file-empty { text-align: center; padding: 20px; color: #666; font-size: 13px; }
+    .grid-3col, .grid-2col { display:grid; gap:8px; }
+    .grid-3col { grid-template-columns:repeat(3,1fr); }
+    .grid-2col { grid-template-columns:repeat(2,1fr); }
+    .nav-row, .site-row, .power-row, .fun-row, .timer-row, .clip-row { display:flex; gap:6px; margin-top:4px; align-items:center; }
+    .nav-row button, .power-row button, .fun-row button, .site-btn { flex:1; }
+    .timer-row input, .clip-row input, .clip-row textarea { flex:1; padding:8px 10px; border:none; border-radius:12px; background:rgba(35,35,60,0.5); color:white; font-size:13px; outline:none; border:1px solid rgba(255,255,255,0.08); resize:none; }
+    .clip-row textarea { height: 80px; font-family: inherit; }
+    .timer-display { text-align:center; font-size:18px; font-weight:600; color:#ffd740; padding:6px; background:rgba(0,0,0,0.3); border-radius:10px; }
+    .dpad { display:grid; grid-template-areas:". up ." "left . right" ". down ."; grid-template-columns:repeat(3,1fr); gap:8px; justify-items:center; align-items:center; }
+    .dpad button { width:58px; height:58px; border-radius:50%; background:rgba(30,30,55,0.75); color:white; font-size:24px; border:1px solid rgba(255,255,255,0.12); cursor:pointer; transition:all 0.15s; }
+    .dpad button:active { background:#6c63ff; transform:scale(0.85); }
+    .dpad .up{grid-area:up} .dpad .down{grid-area:down} .dpad .left{grid-area:left} .dpad .right{grid-area:right}
+    #status { text-align:center; font-size:10px; opacity:0.5; color:#9e9eb9; }
+    .sens-row { display:flex; align-items:center; gap:6px; padding:4px 6px; }
+    .sens-row span { font-size:10px; opacity:0.7; }
+    .sens-row input { flex:1; accent-color:#6c63ff; }
+    .file-quick-access { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+    .file-quick-access .file-nav-btn { flex:1; }
+    .screen-controls { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+    .screen-controls button { flex:1; }
+    .screen-image-container { position: relative; width: 100%; background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden; touch-action: none; }
+    .screen-image-container img { width: 100%; height: 100%; display: block; touch-action: none; object-fit: fill; }
+    .screen-placeholder { padding: 20px; text-align: center; color: #666; }
+    .cursor-overlay { position: absolute; width: 20px; height: 20px; border: 2px solid #ff4d4d; border-radius: 50%; background: rgba(255, 77, 77, 0.5); pointer-events: none; transform: translate(-50%, -50%); display: none; z-index: 10; box-shadow: 0 0 8px rgba(255, 0, 0, 0.7); }
+    .screen-image-container:fullscreen { background: black; display: flex; align-items: center; justify-content: center; border-radius: 0; }
+    .screen-image-container:fullscreen img { width: 100%; height: 100%; object-fit: fill; }
+    .screen-image-container:fullscreen .screen-placeholder { display: none; }
+    .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+    .auth-card { background: rgba(25,25,45,0.9); padding: 30px 24px; border-radius: 20px; text-align: center; max-width: 340px; width: 100%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .auth-icon { font-size: 56px; margin-bottom: 16px; }
+    .auth-title { color: #fff; margin-bottom: 12px; font-size: 1.4rem; font-weight: 600; }
+    .auth-desc { color: #aaa; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+    .auth-btn { padding: 12px 24px; border: none; border-radius: 14px; background: #6c63ff; color: white; font-weight: 600; cursor: pointer; font-size: 14px; width: 100%; }
+    .stat-card { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.08); }
+    .stat-header { font-size: 11px; color: #aaa; margin-bottom: 6px; }
+    .stat-value { font-size: 15px; color: #fff; font-weight: 600; margin-bottom: 6px; }
+    .stat-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; background: linear-gradient(90deg, #6c63ff, #4dd0e1); border-radius: 3px; transition: width 0.5s ease; }
+    .stat-bar-fill.warn { background: linear-gradient(90deg, #ff9800, #ff5722); }
+    .stat-bar-fill.danger { background: linear-gradient(90deg, #f44336, #b71c1c); }
+  </style>
+</head>
+<body>
+  <div id="appRoot">
+    <div class="nexus-fab" id="nexusFab">
+      <div class="nexus-fab-inner"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>
+    </div>
+    <input type="file" id="photoInputFab" accept="image/*" style="display:none;">
+    <input type="file" id="fileInputUpload" style="display:none;">
+    <input type="file" id="wallpaperInput" accept="image/*" style="display:none;">
+
+    <div class="container">
+      <h2>✦ NOVAPAD NEXUS ✦</h2>
+      <div class="touchpad-container">
+        <div class="touchpad" id="touchpad">👆 Touchpad</div>
+        <div class="touchpad-buttons">
+          <button class="touchpad-btn" id="btnLeftClick">👆 Sol</button>
+          <button class="touchpad-btn" id="btnRightClick">👆 Sağ</button>
+          <button class="touchpad-btn" id="btnDoubleClick">👆 Çift</button>
+        </div>
+        <div class="sens-row">
+          <span>Hassasiyet</span>
+          <input type="range" id="sensitivitySlider" min="1" max="5" step="0.5" value="2.5">
+          <span id="sensitivityValue">2.5</span>
+        </div>
+      </div>
+      <div class="quick-actions">
+        <div class="quick-btn" onclick="emitApp('chrome')">🌐 Chrome</div>
+        <div class="quick-btn" onclick="emitApp('spotify')">🟢 Spotify</div>
+        <div class="quick-btn" onclick="emitApp('youtubeMusic')">🎵 YT Music</div>
+        <div class="quick-btn" onclick="emitApp('youtube')">▶️ YouTube</div>
+        <div class="quick-btn" onclick="emitApp('notepad')">📝 Not</div>
+        <div class="quick-btn" onclick="emitApp('calc')">🧮 Hesap</div>
+        <div class="quick-btn" onclick="emitApp('explorer')">📁 Dosya</div>
+        <div class="quick-btn" onclick="emitApp('taskmgr')">⚙️ Görev</div>
+      </div>
+      <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Google'da ara..." autocomplete="off">
+        <button id="sendBtn">⚡</button>
+      </div>
+      <button class="toggle-btn" id="toggleBtn">🔽 Tüm Kontroller</button>
+      <div class="collapsible" id="collapsiblePanel">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tab-controls">🎮 Kontrol</button>
+          <button class="tab-btn" data-tab="tab-timer">⏱️ Zaman</button>
+          <button class="tab-btn" data-tab="tab-clipboard">📋 Pano</button>
+          <button class="tab-btn" data-tab="tab-files">📁 Dosya</button>
+          <button class="tab-btn" data-tab="tab-screen">🖥️ Ekran</button>
+          <button class="tab-btn" data-tab="tab-system">📊 Sistem</button>
+          <button class="tab-btn" data-tab="tab-logs">📜 Loglar</button>
+          <button class="tab-btn" data-tab="tab-media">🎥 Medya</button>
+          <button class="tab-btn" data-tab="tab-sites">🍿 Siteler</button>
+          <button class="tab-btn" data-tab="tab-fun">🌀 Eğlence</button>
+        </div>
+
+        <div class="tab-content active" id="tab-controls">
+          <div class="grid-3col" id="shortcutsContainer"></div>
+          <div class="nav-row">
+            <button id="btnTab">↹ Tab</button>
+            <button id="btnShiftTab">⇧↹</button>
+            <button id="btnEnter">↵ Enter</button>
+          </div>
+          <div class="site-row">
+            <button class="site-btn" id="btnFileUpload">📂 Dosya Gönder</button>
+            <button class="site-btn" id="btnCleanStorage">🧹 Temizlik</button>
+          </div>
+          <div class="site-row">
+            <button class="site-btn" id="btnWallpaper">🖼️ Duvar Kağıdı</button>
+            <button class="site-btn" id="btnVolumeReset">🔊 Ses 50%</button>
+          </div>
+          <div class="power-row">
+            <button class="power-btn" id="btnMonitorOff">💤 Ekran Kapat</button>
+            <button class="power-btn" id="btnMinimizeAll">🖥️ Masaüstü</button>
+          </div>
+          <div class="power-row">
+            <button class="power-btn" id="btnLock">🔒 Kilitle</button>
+            <button class="power-btn" onclick="emitApp('snipping')">✂️ Kesit</button>
+          </div>
+          <div class="power-row">
+            <button class="power-btn" id="btnShutdown">⏻ Kapat</button>
+            <button class="power-btn" id="btnRestart">🔄 Yeniden Başlat</button>
+          </div>
+          <div style="margin-top:12px; font-size:11px; color:#888; letter-spacing:1px; text-align:center;">📝 KOD & KONUM</div>
+          <div class="site-row" style="margin-top:6px;">
+            <button class="site-btn" id="btnOpenCode">📝 Kod Yaz</button>
+            <button class="site-btn" id="btnSaveLocation">📍 Konum Kaydet</button>
+          </div>
+          <div style="margin-top:12px; font-size:11px; color:#888; letter-spacing:1px; text-align:center;">🎬 HIZLI MODLAR</div>
+          <div class="site-row" style="margin-top:6px;">
+            <button class="fun-btn" id="btnModeGame" style="flex:1;">🎮 Oyun</button>
+            <button class="fun-btn" id="btnModeWork" style="flex:1;">💼 İş</button>
+          </div>
+          <div class="site-row">
+            <button class="fun-btn" id="btnModeMovie" style="flex:1;">🎬 Film Gecesi (Ses 100%)</button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-timer">
+          <div class="timer-row">
+            <input type="number" id="timerInput" placeholder="Dakika..." min="1" max="480">
+            <button class="timer-btn" id="btnTimerStart"><span>⏱️</span>Başlat</button>
+          </div>
+          <div class="timer-row"><div class="timer-display" id="timerDisplay">⏳ Henüz başlamadı</div></div>
+          <div class="timer-row"><button class="timer-btn" id="btnTimerCancel"><span>❌</span>İptal Et</button></div>
+        </div>
+
+        <div class="tab-content" id="tab-clipboard">
+          <div class="clip-row"><textarea id="clipboardText" placeholder="PC panosuna gönderilecek metin..."></textarea></div>
+          <div class="clip-row">
+            <button class="clip-btn" id="btnSendClipboard"><span>📤</span>PC'ye Gönder</button>
+            <button class="clip-btn" id="btnReadClipboard"><span>📥</span>PC'den Al</button>
+          </div>
+          <div class="clip-row" style="margin-top:8px;">
+            <button class="clip-btn" id="btnCopyToPhone"><span>📋</span>Telefona Kopyala</button>
+          </div>
+          <div class="clip-row" style="margin-top:8px;">
+            <div style="flex:1; padding:8px 10px; border-radius:12px; background:rgba(0,0,0,0.3); color:#80d8ff; font-size:12px; min-height:40px;" id="clipboardStatus">📋 Pano hazır...</div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-files">
+          <div class="file-manager">
+            <div class="file-header">
+              <button class="file-nav-btn" id="btnFileUp" style="flex:0; padding:8px 12px;">⬆️</button>
+              <div class="file-path" id="filePath">Yükleniyor...</div>
+              <button class="file-nav-btn" id="btnFileRefresh" style="flex:0; padding:8px 12px;">🔄</button>
+            </div>
+            <div class="file-quick-access">
+              <button class="file-nav-btn" data-folder="home">🏠 Ev</button>
+              <button class="file-nav-btn" data-folder="desktop">🖥️ Masaüstü</button>
+              <button class="file-nav-btn" data-folder="documents">📄 Belgeler</button>
+              <button class="file-nav-btn" data-folder="downloads">⬇️ İndirilenler</button>
+            </div>
+            <div class="file-list" id="fileList"><div class="file-empty">Yükleniyor...</div></div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-screen">
+          <div class="screen-controls">
+            <button class="power-btn" id="btnStartScreenShare">▶️ Başlat</button>
+            <button class="power-btn" id="btnStopScreenShare">⏹️ Durdur</button>
+            <button class="power-btn" id="btnFullscreen">🔍 Tam Ekran</button>
+          </div>
+          <div class="screen-image-container" id="screenContainer">
+            <img id="screenImage" src="" alt="Ekran" style="display:none;">
+            <div class="screen-placeholder" id="screenPlaceholder">🖥️ Ekran paylaşımı başlamadı</div>
+            <div class="cursor-overlay" id="cursorOverlay"></div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-system">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <button class="clip-btn" id="btnRefreshStats" style="flex:1;">🔄 Yenile</button>
+            <button class="clip-btn" id="btnAutoRefresh" style="flex:1;">▶️ Otomatik</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="stat-card"><div class="stat-header">🖥️ İşlemci (CPU)</div><div class="stat-value" id="statCpu">-</div><div class="stat-bar"><div class="stat-bar-fill" id="statCpuBar" style="width:0%"></div></div></div>
+            <div class="stat-card"><div class="stat-header">🧠 Bellek (RAM)</div><div class="stat-value" id="statRam">-</div><div class="stat-bar"><div class="stat-bar-fill" id="statRamBar" style="width:0%"></div></div></div>
+            <div class="stat-card"><div class="stat-header">🌡️ Sıcaklık</div><div class="stat-value" id="statTemp">-</div><div class="stat-bar"><div class="stat-bar-fill" id="statTempBar" style="width:0%"></div></div></div>
+            <div class="stat-card"><div class="stat-header">🔋 Batarya</div><div class="stat-value" id="statBattery">-</div><div class="stat-bar"><div class="stat-bar-fill" id="statBatteryBar" style="width:0%"></div></div></div>
+            <div class="stat-card"><div class="stat-header">📶 Ağ Trafiği</div><div class="stat-value" id="statNet">-</div></div>
+            <div class="stat-card"><div class="stat-header">💾 Diskler</div><div id="statDisks" style="font-size:11px; color:#aaa;">-</div></div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-logs">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <button class="clip-btn" id="btnRefreshLogs" style="flex:1;">🔄 Yenile</button>
+            <button class="clip-btn" id="btnClearLogs" style="flex:1;">🗑️ Temizle</button>
+          </div>
+          <div id="logsContainer" style="background:rgba(0,0,0,0.5); border-radius:12px; padding:10px; font-family:'Courier New',monospace; font-size:11px; max-height:400px; overflow-y:auto; color:#a0ffc0;">Yükleniyor...</div>
+        </div>
+
+        <div class="tab-content" id="tab-media">
+          <div class="site-row">
+            <button class="clip-btn" id="btnAnalyzeScreen" style="flex:1;">🔍 Ekran Analizi</button>
+            <button class="clip-btn" id="btnSecretPhoto" style="flex:1;">🕵️ Gizli Kamera</button>
+          </div>
+          <div class="site-row" style="margin-top:6px;">
+            <button class="clip-btn" id="btnTakeScreenshot" style="flex:1;">📷 Ekran Fotoğrafı</button>
+            <button class="clip-btn" id="btnOpenCamera" style="flex:1;">🎥 Kamerayı Aç</button>
+          </div>
+          <div class="site-row" style="margin-top:6px;">
+            <button class="clip-btn" id="btnStartRecord" style="flex:1;">📹 Ekran Kaydı</button>
+          </div>
+          <div style="margin-top:14px; font-size:11px; color:#888; letter-spacing:1px; text-align:center;">🖼️ DUVAR KAĞIDI GALERİSİ</div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px;">
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1519681393784-d120267933ba?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=200');"></button>
+            <button class="wallpaper-thumb" data-url="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1920" style="padding:0; border:2px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; cursor:pointer; height:70px; background-size:cover; background-position:center; background-image:url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=200');"></button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-sites">
+          <div class="grid-2col">
+            <button class="film-btn" onclick="emitApp('https://netflix.com')"><span>🎬</span>Netflix</button>
+            <button class="film-btn" onclick="emitApp('https://www.fullhdfilmizlesene.life/')"><span>📽️</span>Tr Dublaj</button>
+            <button class="film-btn" onclick="emitApp('https://www.hdfilmcehennemi.nl/')"><span>🎞️</span>hdfilmcehennemi</button>
+            <button class="film-btn" onclick="emitApp('https://disneyplus.com')"><span>🏰</span>Disney+</button>
+            <button class="film-btn" onclick="emitApp('https://blutv.com')"><span>👤</span>BluTV</button>
+            <button class="film-btn" onclick="emitApp('https://exxen.com')"><span>🐦‍🔥</span>Exxen</button>
+            <button class="film-btn" onclick="emitApp('https://notube.net/tr/youtube-app-351')"><span>Ⓜ️</span>Mp4</button>
+            <button class="film-btn" onclick="emitApp('https://twitch.tv')"><span>😶‍🌫️</span>Twitch</button>
+            <button class="film-btn" onclick="emitApp('https://kick.com/')"><span>🎙️</span>Kick</button>
+          </div>
+          <div class="site-row" style="margin-top:8px;">
+            <button class="site-btn" id="btnGmail">📧 Gmail</button>
+            <button class="site-btn" id="btnWhatsapp">💬 WhatsApp</button>
+          </div>
+          <div class="site-row">
+            <button class="site-btn" id="btnGithub">🐙 GitHub</button>
+            <button class="site-btn" onclick="emitApp('control')">🛠️ Panel</button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-fun">
+          <div class="fun-row">
+            <button class="fun-btn" id="btnBirthday">🎂 Doğum Günü</button>
+            <button class="fun-btn" id="btnBSOD">💀 Sahte Mavi Ekran</button>
+          </div>
+          <div class="fun-row">
+            <button class="fun-btn" id="btnMatrix">🟢 Matrix</button>
+            <button class="fun-btn" id="btnMouseCrazy">🖱️ Fare Çılgın</button>
+          </div>
+          <div class="fun-row">
+            <button class="fun-btn" id="btnScreenFlip">🖥️ Ters Çevir</button>
+            <button class="fun-btn" id="btnScreenNormal">🖥️ Düzelt</button>
+          </div>
+          <div class="fun-row">
+            <button class="fun-btn" id="btnEmojiRain">😂 Emoji Yağmuru</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dpad">
+        <button class="up" id="btnUp">▲</button>
+        <button class="left" id="btnLeft">◀</button>
+        <button class="right" id="btnRight">▶</button>
+        <button class="down" id="btnDown">▼</button>
+      </div>
+      <div style="text-align:center;margin-top:0.5rem;opacity:0.7;">
+        <svg width="180" height="60" viewBox="0 0 300 80"><style>.sig{fill:#b7b7f0;font-family:'Brush Script MT',cursive;font-size:42px;filter:drop-shadow(0 0 6px #6c63ff)}</style><text x="20" y="55" class="sig">Hasan Uyar</text></svg>
+      </div>
+      <div id="status">● Bağlanıyor</div>
+    </div>
+  </div>
+
+  <div id="codeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; padding:20px; overflow-y:auto;">
+    <div style="background:#1a1a3e; border-radius:20px; padding:20px; max-width:500px; margin:40px auto; border:1px solid rgba(108,99,255,0.4);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="color:#fff; font-size:1.2rem;">📝 Kod Yazıcı</h3>
+        <button id="btnCloseCode" style="background:transparent; border:none; color:#fff; font-size:24px; cursor:pointer;">✕</button>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="color:#aaa; font-size:12px;">Dosya Adı:</label>
+        <input type="text" id="codeFilename" placeholder="ornek_dosya" style="width:100%; padding:10px; border-radius:10px; background:rgba(35,35,60,0.7); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:14px; outline:none; margin-top:4px;">
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="color:#aaa; font-size:12px;">Dil:</label>
+        <select id="codeLanguage" style="width:100%; padding:10px; border-radius:10px; background:rgba(35,35,60,0.7); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:14px; outline:none; margin-top:4px;">
+          <option value="python">Python</option>
+          <option value="javascript">JavaScript</option>
+          <option value="typescript">TypeScript</option>
+          <option value="java">Java</option>
+          <option value="cpp">C++</option>
+          <option value="c">C</option>
+          <option value="csharp">C#</option>
+          <option value="html">HTML</option>
+          <option value="css">CSS</option>
+          <option value="php">PHP</option>
+          <option value="ruby">Ruby</option>
+          <option value="go">Go</option>
+          <option value="rust">Rust</option>
+          <option value="sql">SQL</option>
+          <option value="bash">Bash</option>
+          <option value="json">JSON</option>
+          <option value="yaml">YAML</option>
+          <option value="txt">Düz Metin</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="color:#aaa; font-size:12px;">Kod:</label>
+        <textarea id="codeContent" rows="12" placeholder="Kodu buraya yapıştır veya yaz..." style="width:100%; padding:12px; border-radius:12px; background:rgba(20,20,40,0.9); border:1px solid rgba(255,255,255,0.1); color:#a0ffc0; font-family:'Courier New',monospace; font-size:13px; outline:none; margin-top:4px; resize:vertical;"></textarea>
+      </div>
+      <button id="btnSendCode" style="width:100%; padding:14px; border:none; border-radius:14px; background:linear-gradient(135deg,#6c63ff,#4a42c9); color:#fff; font-weight:600; font-size:15px; cursor:pointer;">🚀 PC'ye Gönder & Aç</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (function() {
+      const url = new URL(window.location.href);
+      const k = url.searchParams.get('k');
+      if (k && k.length > 20) {
+        try { localStorage.setItem('novapad_token', k); } catch(e) {}
+        url.searchParams.delete('k');
+        window.history.replaceState({}, '', url.pathname);
+      }
+    })();
+
+    const authToken = (() => { try { return localStorage.getItem('novapad_token') || ''; } catch(e) { return ''; } })();
+    const socket = io({ auth: { token: authToken } });
+
+    let authFailed = false;
+    socket.on('connect_error', (err) => {
+      if (err.message === 'AUTH_REQUIRED' && !authFailed) {
+        authFailed = true;
+        document.getElementById('appRoot').innerHTML = `
+          <div class="auth-screen"><div class="auth-card">
+            <div class="auth-icon">🔐</div>
+            <div class="auth-title">Yetkisiz Erişim</div>
+            <div class="auth-desc">Bu cihaz eşleştirilmemiş.<br>Bilgisayardaki QR kodu okutun.</div>
+            <button class="auth-btn" onclick="location.reload()">🔄 Tekrar Dene</button>
+          </div></div>
+        `;
+      }
+    });
+
+    const statusDiv = document.getElementById('status');
+    let sens = 2.5;
+    let currentPath = '';
+    let homeDir = '';
+    let pendingFolder = null;
+    let screenWidth = 1920;
+    let screenHeight = 1080;
+    let lastTouchTime = 0;
+    const doubleTapDelay = 300;
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    const filePathEl = document.getElementById('filePath');
+    const fileListEl = document.getElementById('fileList');
+    function loadDirectory(p) { socket.emit('listDirectory', p); }
+
+    socket.on('directoryList', (data) => {
+      currentPath = data.path;
+      if (!homeDir) homeDir = data.path;
+      if (pendingFolder) {
+        const target = getFolderPath(pendingFolder, homeDir);
+        pendingFolder = null;
+        if (target) { loadDirectory(target); return; }
+      }
+      filePathEl.textContent = currentPath;
+      if (data.items.length === 0) { fileListEl.innerHTML = '<div class="file-empty">📂 Boş klasör</div>'; return; }
+      fileListEl.innerHTML = data.items.map(item => `
+        <div class="file-item" data-path="${escapeHtml(item.fullPath)}" data-type="${item.isDirectory ? 'dir' : 'file'}">
+          <div class="file-icon">${item.isDirectory ? '📁' : getFileIcon(item.name)}</div>
+          <div class="file-name">${escapeHtml(item.name)}</div>
+          <div class="file-meta">${item.isDirectory ? '' : escapeHtml(item.sizeFormatted)}</div>
+          ${!item.isDirectory ? `<button class="download-btn" data-download="${escapeHtml(item.fullPath)}" style="background:none; border:none; color:#6c63ff; font-size:16px; cursor:pointer; padding:0 4px;">📥</button>` : ''}
+        </div>
+      `).join('');
+      document.querySelectorAll('.file-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (e.target.classList.contains('download-btn')) return;
+          const p = el.dataset.path;
+          const t = el.dataset.type;
+          if (t === 'dir') loadDirectory(p); else socket.emit('openPath', p);
+        });
+      });
+      document.querySelectorAll('.download-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          statusDiv.textContent = '📥 İndiriliyor...';
+          socket.emit('downloadFile', btn.dataset.download);
+        });
+      });
+    });
+
+    socket.on('directoryError', (msg) => { fileListEl.innerHTML = `<div class="file-empty">⚠️ ${escapeHtml(msg)}</div>`; });
+
+    function getFolderPath(folder, home) {
+      switch(folder) { case 'home': return home; case 'desktop': return home + '\\Desktop'; case 'documents': return home + '\\Documents'; case 'downloads': return home + '\\Downloads'; default: return home; }
+    }
+    function getFileIcon(name) {
+      const ext = name.split('.').pop().toLowerCase();
+      const m = { 'jpg':'🖼️','jpeg':'🖼️','png':'🖼️','gif':'🖼️','bmp':'🖼️','svg':'🖼️','webp':'🖼️','ico':'🖼️', 'mp3':'🎵','wav':'🎵','ogg':'🎵','flac':'🎵','aac':'🎵','m4a':'🎵', 'mp4':'🎬','avi':'🎬','mkv':'🎬','mov':'🎬','wmv':'🎬','flv':'🎬','webm':'🎬', 'txt':'📄','pdf':'📕','doc':'📘','docx':'📘','xls':'📗','xlsx':'📗','ppt':'📙','pptx':'📙', 'zip':'🗜️','rar':'🗜️','7z':'🗜️','tar':'🗜️','gz':'🗜️', 'exe':'⚙️','msi':'📦','bat':'📜','cmd':'📜','ps1':'📜','apk':'📱', 'html':'🌐','css':'🎨','js':'📜','ts':'📜','json':'📜','xml':'📜','py':'🐍','java':'☕' };
+      return m[ext] || '📄';
+    }
+
+    document.getElementById('btnFileUp').addEventListener('click', () => {
+      const p = currentPath.substring(0, currentPath.lastIndexOf('\\'));
+      if (p) loadDirectory(p);
+    });
+    document.getElementById('btnFileRefresh').addEventListener('click', () => loadDirectory(currentPath || ''));
+    document.querySelectorAll('.file-quick-access .file-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const f = btn.dataset.folder;
+        if (!homeDir) { pendingFolder = f; loadDirectory(''); }
+        else loadDirectory(getFolderPath(f, homeDir));
+      });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'tab-files' && homeDir) loadDirectory(currentPath || homeDir);
+        if (btn.dataset.tab === 'tab-system') socket.emit('getSystemStats');
+        if (btn.dataset.tab === 'tab-logs') socket.emit('getLogs');
+      });
+    });
+
+    loadDirectory('');
+
+    const screenImage = document.getElementById('screenImage');
+    const screenPlaceholder = document.getElementById('screenPlaceholder');
+    const screenContainer = document.getElementById('screenContainer');
+    const cursorOverlay = document.getElementById('cursorOverlay');
+    socket.emit('getScreenSize');
+    socket.on('screenSize', (s) => { screenWidth = s.width; screenHeight = s.height; });
+
+    document.getElementById('btnStartScreenShare').addEventListener('click', () => { socket.emit('startScreenShare'); screenPlaceholder.textContent = '🔄 Başlatılıyor...'; });
+    document.getElementById('btnStopScreenShare').addEventListener('click', () => { socket.emit('stopScreenShare'); screenImage.style.display = 'none'; screenPlaceholder.style.display = 'block'; screenPlaceholder.textContent = '🖥️ Ekran paylaşımı durduruldu'; cursorOverlay.style.display = 'none'; });
+    document.getElementById('btnFullscreen').addEventListener('click', () => {
+      if (screenImage.style.display === 'none') return alert('Önce ekran paylaşımını başlatın.');
+      if (screenContainer.requestFullscreen) screenContainer.requestFullscreen();
+      else if (screenContainer.webkitRequestFullscreen) screenContainer.webkitRequestFullscreen();
+    });
+    socket.on('screenFrame', (url) => { screenImage.src = url; screenImage.style.display = 'block'; screenPlaceholder.style.display = 'none'; });
+    socket.on('screenError', (msg) => { screenPlaceholder.style.display = 'block'; screenPlaceholder.textContent = '❌ Hata: ' + msg; });
+
+    function updateCursor(clientX, clientY) {
+      const rect = screenContainer.getBoundingClientRect();
+      cursorOverlay.style.left = (clientX - rect.left) + 'px';
+      cursorOverlay.style.top = (clientY - rect.top) + 'px';
+      cursorOverlay.style.display = 'block';
+    }
+    screenImage.addEventListener('touchstart', (e) => { e.preventDefault(); const t = e.touches[0]; if (!t) return; handleScreenTouch(t); updateCursor(t.clientX, t.clientY); }, { passive: false });
+    screenImage.addEventListener('touchmove', (e) => { e.preventDefault(); const t = e.touches[0]; if (!t) return; handleScreenTouch(t); updateCursor(t.clientX, t.clientY); }, { passive: false });
+    screenImage.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastTouchTime < doubleTapDelay) { socket.emit('mouseDoubleClick'); lastTouchTime = 0; }
+      else { socket.emit('mouseClick'); lastTouchTime = now; }
+      setTimeout(() => cursorOverlay.style.display = 'none', 300);
+    });
+    function handleScreenTouch(t) {
+      const rect = screenContainer.getBoundingClientRect();
+      const x = (t.clientX - rect.left) * (screenWidth / rect.width);
+      const y = (t.clientY - rect.top) * (screenHeight / rect.height);
+      socket.emit('mouseMoveTo', { x, y });
+    }
+
+    const tp = document.getElementById('touchpad');
+    let lx=0, ly=0, touching=false;
+    const sSlider = document.getElementById('sensitivitySlider');
+    const sVal = document.getElementById('sensitivityValue');
+    sSlider.addEventListener('input', () => { sens=+sSlider.value; sVal.textContent=sens.toFixed(1); });
+    tp.addEventListener('touchstart', e => { e.preventDefault(); const t=e.touches[0]; lx=t.clientX; ly=t.clientY; touching=true; });
+    tp.addEventListener('touchmove', e => { e.preventDefault(); if(!touching) return; const t = e.touches[0]; const dx = Math.round((t.clientX-lx)*sens), dy = Math.round((t.clientY-ly)*sens); if (dx!==0 || dy!==0) socket.emit('mouseMove',{dx,dy}); lx=t.clientX; ly=t.clientY; });
+    tp.addEventListener('touchend', e => { e.preventDefault(); touching=false; });
+    document.getElementById('btnLeftClick').addEventListener('click',()=>socket.emit('mouseClick'));
+    document.getElementById('btnRightClick').addEventListener('click',()=>socket.emit('mouseRightClick'));
+    document.getElementById('btnDoubleClick').addEventListener('click',()=>socket.emit('mouseDoubleClick'));
+
+    window.emitApp = (app) => socket.emit('key', app);
+
+    const clipboardText = document.getElementById('clipboardText');
+    const clipboardStatus = document.getElementById('clipboardStatus');
+    document.getElementById('btnSendClipboard').addEventListener('click', () => { const t = clipboardText.value.trim(); if (t) { socket.emit('clipboard', t); clipboardStatus.textContent = '📤 Gönderildi!'; } });
+    document.getElementById('btnReadClipboard').addEventListener('click', () => { socket.emit('readClipboard'); clipboardStatus.textContent = '📥 Okunuyor...'; });
+    document.getElementById('btnCopyToPhone').addEventListener('click', () => {
+      const t = clipboardText.value.trim(); if (!t) return;
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(()=>clipboardStatus.textContent='✅ Kopyalandı!').catch(()=>{
+        const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); clipboardStatus.textContent='✅ Kopyalandı!';
+      });
+    });
+    socket.on('clipboardContent', (t) => { if (t) { clipboardText.value = t; clipboardStatus.textContent = '📥 Alındı! ('+t.length+' karakter)'; } else clipboardStatus.textContent = '📋 Boş'; });
+    socket.on('clipboardDone', () => { clipboardStatus.textContent = '✅ Yazıldı!'; });
+    socket.on('clipboardError', () => { clipboardStatus.textContent = '❌ Hata'; });
+
+    const sc = document.getElementById('shortcutsContainer');
+    [{k:'ctrl+t',i:'🆕',l:'Sekme'},{k:'ctrl+w',i:'❌',l:'Kapat'},{k:'alt+left',i:'⬅️',l:'Geri'},{k:'alt+right',i:'➡️',l:'İleri'},{k:'volume_up',i:'🔊',l:'Ses+'},{k:'volume_down',i:'🔉',l:'Ses-'},{k:'volume_mute',i:'🔇',l:'Sustur'},{k:'media_play_pause',i:'⏯️',l:'Oynat'},{k:'media_prev',i:'⏮️',l:'Önceki'},{k:'media_next',i:'⏭️',l:'Sonraki'},{k:'escape',i:'⎋',l:'Esc'}].forEach(s=>{
+      const b=document.createElement('button'); b.className='ctrl-btn'; b.innerHTML=`<span>${s.i}</span>${s.l}`;
+      b.addEventListener('click',()=>socket.emit('key',s.k)); sc.appendChild(b);
+    });
+
+    document.getElementById('toggleBtn').addEventListener('click',()=>{ const p=document.getElementById('collapsiblePanel'); const o=p.classList.toggle('open'); document.getElementById('toggleBtn').innerHTML = o ? '🔼 Kapat' : '🔽 Tüm Kontroller'; });
+
+    document.getElementById('btnTab').addEventListener('click',()=>socket.emit('key','tab'));
+    document.getElementById('btnShiftTab').addEventListener('click',()=>socket.emit('key','shiftTab'));
+    document.getElementById('btnEnter').addEventListener('click',()=>socket.emit('key','enter'));
+    document.getElementById('btnGmail').addEventListener('click',()=>socket.emit('key','gmail'));
+    document.getElementById('btnWhatsapp').addEventListener('click',()=>socket.emit('key','whatsapp'));
+    document.getElementById('btnGithub').addEventListener('click',()=>socket.emit('key','github'));
+    document.getElementById('btnMinimizeAll').addEventListener('click',()=>socket.emit('key','minimizeAll'));
+    document.getElementById('btnLock').addEventListener('click',()=>socket.emit('key','lock'));
+    document.getElementById('btnMonitorOff').addEventListener('click',()=>socket.emit('key','monitorOff'));
+    document.getElementById('btnMatrix').addEventListener('click',()=>{socket.emit('key','matrix');statusDiv.textContent='🟢 Matrix!';});
+    document.getElementById('btnMouseCrazy').addEventListener('click',()=>{socket.emit('key','mouseCrazy');statusDiv.textContent='🖱️ Çıldırdı!';});
+    document.getElementById('btnScreenFlip').addEventListener('click',()=>{socket.emit('key','screenFlip');statusDiv.textContent='🖥️ Ters!';});
+    document.getElementById('btnScreenNormal').addEventListener('click',()=>{socket.emit('key','screenNormal');statusDiv.textContent='🖥️ Düz!';});
+    document.getElementById('btnEmojiRain').addEventListener('click',()=>{socket.emit('key','emojiRain');statusDiv.textContent='😂 Emoji yağmuru!';});
+    document.getElementById('btnShutdown').addEventListener('click',()=>{if(confirm('Kapatılsın mı?'))socket.emit('key','shutdown');});
+    document.getElementById('btnRestart').addEventListener('click',()=>{if(confirm('Yeniden başlatılsın mı?'))socket.emit('key','restart');});
+
+    const fu = document.getElementById('fileInputUpload');
+    document.getElementById('btnFileUpload').addEventListener('click',()=>fu.click());
+    fu.addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{socket.emit('fileUpload',{name:f.name,data:ev.target.result});statusDiv.textContent='📂 Gönderiliyor...';}; r.readAsDataURL(f); });
+    socket.on('fileSent',n=>{statusDiv.textContent=`✅ "${n}" kaydedildi!`;});
+    socket.on('fileError',()=>{statusDiv.textContent='❌ Hata';});
+    document.getElementById('btnCleanStorage').addEventListener('click',()=>{ if(confirm('Temizlik yapılsın mı?')){socket.emit('cleanStorage');statusDiv.textContent='🧹 Temizleniyor...';} });
+    socket.on('storageCleaned',()=>{statusDiv.textContent='✅ Temizlendi!';});
+
+    const wpInput = document.getElementById('wallpaperInput');
+    document.getElementById('btnWallpaper').addEventListener('click',()=>wpInput.click());
+    wpInput.addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{socket.emit('setWallpaper',ev.target.result);statusDiv.textContent='🖼️ Değiştiriliyor...';}; r.readAsDataURL(f); });
+    socket.on('wallpaperDone',()=>{statusDiv.textContent='✅ Duvar kağıdı değişti!';});
+    socket.on('wallpaperError',(m)=>{statusDiv.textContent='❌ '+(m||'Hata');});
+
+    document.getElementById('btnVolumeReset').addEventListener('click',()=>{ socket.emit('setVolume', 50); statusDiv.textContent='🔊 Ses 50%'; });
+    socket.on('volumeDone',(v)=>{statusDiv.textContent=`🔊 Ses: ${v}%`;});
+
+    socket.on('fileDownloaded', (d) => {
+      const a = document.createElement('a');
+      a.href = 'data:application/octet-stream;base64,' + d.data;
+      a.download = d.name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      statusDiv.textContent = `✅ "${d.name}" indirildi!`;
+    });
+    socket.on('downloadError',(m)=>{statusDiv.textContent='❌ '+m;});
+
+    document.getElementById('btnModeGame').addEventListener('click', () => { socket.emit('modeGame'); statusDiv.textContent = '🎮 Oyun Modu başlatılıyor...'; });
+    document.getElementById('btnModeWork').addEventListener('click', () => { socket.emit('modeWork'); statusDiv.textContent = '💼 İş Modu başlatılıyor...'; });
+    document.getElementById('btnModeMovie').addEventListener('click', () => { socket.emit('modeMovie'); statusDiv.textContent = '🎬 Film Gecesi başlatılıyor...'; });
+    socket.on('modeDone', (msg) => { statusDiv.textContent = msg; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+
+    document.getElementById('btnAnalyzeScreen').addEventListener('click', () => { socket.emit('analyzeScreen'); statusDiv.textContent = '🔍 Ekran analiz ediliyor...'; });
+    socket.on('screenAnalysis', (imgUrl) => {
+      const w = window.open('', '_blank');
+      w.document.write(`<html><head><title>Ekran Analizi</title><style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;color:#fff;font-family:sans-serif;}img{max-width:100%;max-height:100vh;}</style></head><body><img src="${imgUrl}"><div style="position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.7);padding:8px 14px;border-radius:10px;font-size:13px;">📷 ${new Date().toLocaleTimeString('tr-TR')}</div></body></html>`);
+      statusDiv.textContent = '✅ Ekran analizi açıldı';
+      setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 3000);
+    });
+    socket.on('screenAnalysisError', (m) => { statusDiv.textContent = '❌ ' + m; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 3000); });
+
+    document.getElementById('btnSecretPhoto').addEventListener('click', () => {
+      if (!confirm('PC kamerasından gizli fotoğraf çekilsin mi?')) return;
+      socket.emit('secretPhoto');
+      statusDiv.textContent = '🕵️ Fotoğraf çekiliyor...';
+    });
+    socket.on('secretPhotoDone', (n) => { statusDiv.textContent = '✅ Kaydedildi: ' + n; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+    socket.on('secretPhotoError', (m) => { statusDiv.textContent = '❌ ' + m; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+
+    document.getElementById('btnBirthday').addEventListener('click', () => {
+      const name = prompt('Kimin için?', 'Sevgili Dostum') || 'Sevgili Dostum';
+      socket.emit('birthdayMode', { name });
+      statusDiv.textContent = '🎂 Doğum günü modu başlatıldı!';
+    });
+    socket.on('birthdayDone', () => { statusDiv.textContent = '🎉 Doğum günü modu PC\'de açıldı!'; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+
+    document.getElementById('btnBSOD').addEventListener('click', () => {
+      if (!confirm('PC\'de sahte mavi ekran gösterilsin mi?')) return;
+      socket.emit('fakeBSOD');
+      statusDiv.textContent = '💀 Mavi ekran gösteriliyor...';
+    });
+    socket.on('bsodShown', () => { statusDiv.textContent = '💀 Sahte mavi ekran aktif'; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 3000); });
+
+    document.getElementById('btnSaveLocation').addEventListener('click', () => {
+      if (!navigator.geolocation) { statusDiv.textContent = '❌ Konum desteklenmiyor'; return; }
+      statusDiv.textContent = '📍 Konum alınıyor...';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => socket.emit('saveLocation', { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+        () => { statusDiv.textContent = '❌ Konum reddedildi'; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 3000); },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+    socket.on('locationSaved', (d) => { statusDiv.textContent = `📍 Kaydedildi: ${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}`; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+    socket.on('locationError', (m) => { statusDiv.textContent = '❌ ' + m; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 3000); });
+
+    const codeModal = document.getElementById('codeModal');
+    document.getElementById('btnOpenCode').addEventListener('click', () => { codeModal.style.display = 'block'; });
+    document.getElementById('btnCloseCode').addEventListener('click', () => { codeModal.style.display = 'none'; });
+    document.getElementById('btnSendCode').addEventListener('click', () => {
+      const filename = document.getElementById('codeFilename').value.trim();
+      const language = document.getElementById('codeLanguage').value;
+      const code = document.getElementById('codeContent').value;
+      if (!code.trim()) { alert('Kod boş!'); return; }
+      socket.emit('writeCode', { filename, code, language });
+      statusDiv.textContent = '📝 Kod gönderiliyor...';
+      codeModal.style.display = 'none';
+      document.getElementById('codeContent').value = '';
+      document.getElementById('codeFilename').value = '';
+    });
+    socket.on('codeWritten', (n) => { statusDiv.textContent = `✅ "${n}" kaydedildi ve açıldı!`; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+    socket.on('codeError', (m) => { statusDiv.textContent = '❌ ' + m; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 3000); });
+
+    document.getElementById('btnTakeScreenshot').addEventListener('click', () => { socket.emit('takeScreenshot'); statusDiv.textContent = '📷 Ekran fotoğrafı alınıyor...'; });
+    socket.on('screenshotSaved', (name) => { statusDiv.textContent = '✅ Kaydedildi: ' + name; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+    socket.on('screenshotError', (m) => { statusDiv.textContent = '❌ ' + m; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 4000); });
+
+    document.getElementById('btnOpenCamera').addEventListener('click', () => { socket.emit('openCamera'); statusDiv.textContent = '🎥 Kamera açılıyor...'; });
+    socket.on('cameraOpened', () => { statusDiv.textContent = '✅ PC\'de kamera açıldı'; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 3000); });
+
+    document.getElementById('btnStartRecord').addEventListener('click', () => { socket.emit('startScreenRecord'); statusDiv.textContent = '📹 Xbox Game Bar açılıyor...'; });
+    socket.on('recordStarted', () => { statusDiv.textContent = '✅ Game Bar\'da Win+Alt+R ile kaydı başlat'; setTimeout(() => { statusDiv.textContent = '✅ Bağlı (🔐 Güvenli)'; }, 5000); });
+
+    document.querySelectorAll('.wallpaper-thumb').forEach(btn => {
+      btn.addEventListener('click', () => { socket.emit('setWallpaperUrl', btn.dataset.url); statusDiv.textContent = '🖼️ Duvar kağıdı indiriliyor...'; });
+    });
+
+    let timerInt=null, remaining=0;
+    document.getElementById('btnTimerStart').addEventListener('click',()=>{
+      const m=+document.getElementById('timerInput').value;
+      if(!m||m<=0) return statusDiv.textContent='⚠️ Dakika girin';
+      if(timerInt) clearInterval(timerInt);
+      socket.emit('timerShutdown',m);
+    });
+    document.getElementById('btnTimerCancel').addEventListener('click',()=>socket.emit('cancelShutdown'));
+    socket.on('timerStarted',m=>{
+      remaining=m*60; statusDiv.textContent=`⏱️ ${m} dk sonra kapanacak`; updTimer();
+      if(timerInt) clearInterval(timerInt);
+      timerInt=setInterval(()=>{remaining--;updTimer();if(remaining<=0){clearInterval(timerInt);timerInt=null;}},1000);
+    });
+    socket.on('timerError',()=>{statusDiv.textContent='❌ Başlatılamadı';});
+    socket.on('shutdownCancelled',()=>{ if(timerInt) clearInterval(timerInt); timerInt=null; remaining=0; document.getElementById('timerDisplay').textContent='⏳ İptal edildi'; });
+    function updTimer(){ const m=Math.floor(remaining/60), s=remaining%60; document.getElementById('timerDisplay').textContent=`⏳ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} kaldı`; }
+
+    let autoStats = null;
+    const btnAutoRefresh = document.getElementById('btnAutoRefresh');
+    function updateBar(id, val) {
+      const bar = document.getElementById(id + 'Bar'); if (!bar) return;
+      bar.style.width = Math.min(100, Math.max(0, val)) + '%';
+      bar.classList.remove('warn','danger');
+      if (val > 85) bar.classList.add('danger'); else if (val > 65) bar.classList.add('warn');
+    }
+    socket.on('systemStats', (d) => {
+      document.getElementById('statCpu').textContent = `${d.cpu.load}% • ${d.cpu.cores} çekirdek`; updateBar('statCpu', parseFloat(d.cpu.load));
+      document.getElementById('statRam').textContent = `${d.mem.usedFormatted} / ${d.mem.totalFormatted} (${d.mem.percent}%)`; updateBar('statRam', parseFloat(d.mem.percent));
+      const t = d.temp.main || d.temp.max || 0;
+      document.getElementById('statTemp').textContent = t > 0 ? `${t.toFixed(1)}°C` : 'Algılanamadı'; updateBar('statTemp', t > 0 ? t : 0);
+      if (d.battery.hasBattery) { document.getElementById('statBattery').textContent = `${d.battery.percent}% ${d.battery.isCharging ? '⚡' : ''}`; updateBar('statBattery', d.battery.percent); }
+      else document.getElementById('statBattery').textContent = 'Masaüstü (pil yok)';
+      document.getElementById('statNet').textContent = `↓ ${d.net.rxFormatted}  ↑ ${d.net.txFormatted}`;
+      document.getElementById('statDisks').innerHTML = d.disks.map(dk => `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${dk.fs}</span><span style="color:${dk.use > 85 ? '#f44336' : dk.use > 65 ? '#ff9800' : '#4dd0e1'};">${dk.usedFormatted} / ${dk.sizeFormatted} (${dk.use}%)</span></div>`).join('') || 'Bulunamadı';
+    });
+    document.getElementById('btnRefreshStats').addEventListener('click', () => socket.emit('getSystemStats'));
+    btnAutoRefresh.addEventListener('click', () => {
+      if (autoStats) { clearInterval(autoStats); autoStats = null; btnAutoRefresh.textContent = '▶️ Otomatik'; }
+      else { socket.emit('getSystemStats'); autoStats = setInterval(() => socket.emit('getSystemStats'), 3000); btnAutoRefresh.textContent = '⏸️ Durdur'; }
+    });
+
+    socket.on('logsData', (lines) => {
+      const el = document.getElementById('logsContainer');
+      if (!lines || lines.length === 0) { el.innerHTML = '<span style="color:#888;">Henüz log yok.</span>'; return; }
+      el.innerHTML = lines.map(l => { const color = l.includes('❌') ? '#ff6b6b' : l.includes('✅') ? '#4dd0e1' : '#a0ffc0'; return `<div style="color:${color}; margin-bottom:3px; word-break:break-all;">${l}</div>`; }).join('');
+    });
+    socket.on('logsCleared', () => { document.getElementById('logsContainer').innerHTML = '<span style="color:#888;">Loglar temizlendi.</span>'; });
+    document.getElementById('btnRefreshLogs').addEventListener('click', () => socket.emit('getLogs'));
+    document.getElementById('btnClearLogs').addEventListener('click', () => { if (confirm('Loglar silinsin mi?')) socket.emit('clearLogs'); });
+
+    const fab=document.getElementById('nexusFab'), pf=document.getElementById('photoInputFab');
+    let pt=null, lp=false;
+    fab.addEventListener('touchstart',e=>{e.preventDefault();lp=false;pt=setTimeout(()=>{lp=true;pf.click();},500);});
+    fab.addEventListener('touchend',e=>{e.preventDefault();clearTimeout(pt);if(!lp){const p=document.getElementById('collapsiblePanel');const tb=document.getElementById('toggleBtn');const o=p.classList.toggle('open');tb.innerHTML=o?'🔼 Kapat':'🔽 Tüm Kontroller';}});
+    fab.addEventListener('mousedown',()=>{lp=false;pt=setTimeout(()=>{lp=true;pf.click();},500);});
+    fab.addEventListener('mouseup',()=>{clearTimeout(pt);if(!lp){const p=document.getElementById('collapsiblePanel');const tb=document.getElementById('toggleBtn');const o=p.classList.toggle('open');tb.innerHTML=o?'🔼 Kapat':'🔽 Tüm Kontroller';}});
+    pf.addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{socket.emit('photo',ev.target.result);statusDiv.textContent='📸 Gönderiliyor...';}; r.readAsDataURL(f); });
+    socket.on('photoSent',()=>{statusDiv.textContent='✅ Açıldı!';});
+
+    document.getElementById('btnUp').addEventListener('click',()=>socket.emit('key','up'));
+    document.getElementById('btnDown').addEventListener('click',()=>socket.emit('key','down'));
+    document.getElementById('btnLeft').addEventListener('click',()=>socket.emit('key','left'));
+    document.getElementById('btnRight').addEventListener('click',()=>socket.emit('key','right'));
+
+    socket.on('connect',()=>{statusDiv.textContent='✅ Bağlı (🔐 Güvenli)';});
+    socket.on('disconnect',()=>{statusDiv.textContent='⛔ Bağlantı koptu';});
+
+    document.getElementById('sendBtn').addEventListener('click',()=>{
+      const t=document.getElementById('searchInput').value.trim();
+      if(t){socket.emit('type',t);document.getElementById('searchInput').value='';}
+    });
+    document.getElementById('searchInput').addEventListener('keypress',e=>{if(e.key==='Enter')document.getElementById('sendBtn').click();});
+  </script>
+</body>
+</html>

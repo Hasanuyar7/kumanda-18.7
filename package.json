@@ -1,0 +1,19 @@
+{
+  "name": "novapad-nexus",
+  "version": "6.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ffmpeg-static": "^5.3.0",
+    "qrcode-terminal": "^0.12.0",
+    "selfsigned": "^5.5.0",
+    "socket.io": "^4.7.2",
+    "systeminformation": "^5.33.15"
+  },
+  "allowScripts": {
+    "ffmpeg-static@5.3.0": true
+  }
+}
